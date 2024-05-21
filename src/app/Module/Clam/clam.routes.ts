@@ -6,9 +6,13 @@ import { createClaim, getClaims, updateClaimStatus } from './clam.controller';
 
 const router = express.Router();
 
-router.post('/', auth(UserRole.USER), createClaim);
+router.post(
+  '/',
+  auth(UserRole.USER, UserRole.ADMIN, UserRole.SuperAdmin),
+  createClaim,
+);
 
-router.get('/', auth(UserRole.USER), getClaims);
-router.put('/:id', auth(UserRole.USER), updateClaimStatus);
+router.get('/', getClaims);
+router.put('/:id', updateClaimStatus);
 
 export const ClamRoutes = router;

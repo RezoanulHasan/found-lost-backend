@@ -12,7 +12,11 @@ import {
 
 const router = express.Router();
 
-router.post('/', auth(UserRole.USER), reportFoundItem);
+router.post(
+  '/',
+  auth(UserRole.USER, UserRole.ADMIN, UserRole.SuperAdmin),
+  reportFoundItem,
+);
 router.get('/', getFoundItems);
 router.get('/:id', getFoundItemById);
 router.delete('/:id', deleteFoundItemById);

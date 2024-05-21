@@ -23,7 +23,17 @@ export const createClaim: RequestHandler = catchAsync(async (req, res) => {
       lostDate,
     },
   });
+  const foundItem = await prisma.foundItem.findUnique({
+    where: { id: foundItemId },
+  });
 
+  if (!foundItem) {
+    return res.status(404).json({
+      success: false,
+      statusCode: 404,
+      message: 'Found item not found',
+    });
+  }
   res.status(201).json({
     success: true,
     statusCode: 201,
@@ -50,8 +60,6 @@ export const getClaims: RequestHandler = catchAsync(async (req, res) => {
               updatedAt: true,
             },
           },
-
-          //category: true,
         },
       },
     },

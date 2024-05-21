@@ -12,7 +12,11 @@ import {
 
 const router = express.Router();
 
-router.post('/', auth(UserRole.USER), reportLostItem);
+router.post(
+  '/',
+  auth(UserRole.USER, UserRole.ADMIN, UserRole.SuperAdmin),
+  reportLostItem,
+);
 
 router.get('/:id', getLostItemById);
 router.put('/:id', updateLostItemById);
