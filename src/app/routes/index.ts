@@ -4,9 +4,10 @@ import { AuthRoutes } from '../Module/Auth/auth.routes';
 import { ItemRoutes } from '../Module/Found/found.routes';
 import { ClamRoutes } from '../Module/Clam/clam.routes';
 import { ProfileRoutes } from '../Module/Profile/profile.routes';
-import { CategoryRoutes } from '../Module/Found/category.routes';
+
 import { LoginRoutes } from '../Module/Auth/login.routes';
 import { RegistrationRoutes } from '../Module/Auth/registration.routes';
+import { LostRoutes } from '../Module/LostIteams/lost.routes';
 
 const router = express.Router();
 
@@ -32,8 +33,8 @@ const moduleRoutes = [
   },
 
   {
-    path: '/found-item-categories',
-    route: CategoryRoutes,
+    path: '/lost-items',
+    route: LostRoutes,
   },
 
   {

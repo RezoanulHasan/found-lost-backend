@@ -51,7 +51,7 @@ export const getClaims: RequestHandler = catchAsync(async (req, res) => {
             },
           },
 
-          category: true,
+          //category: true,
         },
       },
     },

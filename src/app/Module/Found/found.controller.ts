@@ -9,28 +9,20 @@ import { JwtPayload } from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 
-export const createFoundItemCategory: RequestHandler = catchAsync(
-  async (req, res) => {
-    const { name } = req.body;
-    const foundItemCategory = await prisma.foundItemCategory.create({
-      data: {
-        name,
-      },
-    });
-    res.status(201).json({
-      success: true,
-      statusCode: 201,
-      message: 'Found item category created successfully',
-      data: foundItemCategory,
-    });
-  },
-);
-
 export const reportFoundItem: RequestHandler = catchAsync(async (req, res) => {
-  const { categoryId, foundItemName, description, location } = req.body;
+  const {
+    category,
+    foundItemName,
+    description,
+    location,
+    date,
+    image,
+    phoneNumber,
+    email,
+  } = req.body;
 
   try {
-    const user = req.user as JwtPayload; // Corrected to use req.user instead of req.body.user
+    const user = req.user as JwtPayload;
 
     if (!user || !user.userId) {
       throw new Error('User information not available');
@@ -40,15 +32,19 @@ export const reportFoundItem: RequestHandler = catchAsync(async (req, res) => {
 
     const foundItem = await prisma.foundItem.create({
       data: {
-        userId, // Corrected to use userId instead of user
-        categoryId,
+        userId,
+        category,
         foundItemName,
         description,
         location,
+        date,
+        image,
+        phoneNumber,
+        email,
+        status: 'PENDING', // Default status set to PENDING
       },
       include: {
         user: true,
-        category: true,
       },
     });
 
@@ -63,25 +59,24 @@ export const reportFoundItem: RequestHandler = catchAsync(async (req, res) => {
           id: foundItem.user.id,
           name: foundItem.user.name || '',
           email: foundItem.user.email || '',
-          createdAt: foundItem.createdAt || '',
-          updatedAt: foundItem.updatedAt || '',
+          createdAt: foundItem.user.createdAt || '',
+          updatedAt: foundItem.user.updatedAt || '',
         },
-        categoryId,
-        category: {
-          id: foundItem.category.id,
-          name: foundItem.category.name,
-          createdAt: foundItem.createdAt,
-          updatedAt: foundItem.updatedAt,
-        },
+        category: foundItem.category, // category is now directly included
         foundItemName: foundItem.foundItemName,
         description: foundItem.description,
         location: foundItem.location,
+        date: foundItem.date,
+        image: foundItem.image,
+        phoneNumber: foundItem.phoneNumber,
+        email: foundItem.email,
+        status: foundItem.status,
         createdAt: foundItem.createdAt,
         updatedAt: foundItem.updatedAt,
       },
     });
   } catch (error) {
-    // console.error('Error reporting found item:', error);
+    console.error('Error reporting found item:', error);
     res.status(500).json({
       success: false,
       statusCode: 500,
@@ -89,6 +84,137 @@ export const reportFoundItem: RequestHandler = catchAsync(async (req, res) => {
     });
   }
 });
+
+export const getFoundItemById: RequestHandler = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const foundItem = await prisma.foundItem.findUnique({
+      where: { id },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!foundItem) {
+      return res.status(404).json({
+        success: false,
+        statusCode: 404,
+        message: 'Found item not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      data: foundItem,
+    });
+  } catch (error) {
+    console.error('Error retrieving found item:', error);
+    res.status(500).json({
+      success: false,
+      statusCode: 500,
+      message: 'Internal server error',
+    });
+  }
+});
+
+export const deleteFoundItemById: RequestHandler = catchAsync(
+  async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const foundItem = await prisma.foundItem.findUnique({
+        where: { id },
+      });
+
+      if (!foundItem) {
+        return res.status(404).json({
+          success: false,
+          statusCode: 404,
+          message: 'Found item not found',
+        });
+      }
+
+      await prisma.foundItem.delete({
+        where: { id },
+      });
+
+      res.status(200).json({
+        success: true,
+        statusCode: 200,
+        message: 'Found item deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting found item:', error);
+      res.status(500).json({
+        success: false,
+        statusCode: 500,
+        message: 'Internal server error',
+      });
+    }
+  },
+);
+
+export const updateFoundItemById: RequestHandler = catchAsync(
+  async (req, res) => {
+    const { id } = req.params;
+    const {
+      category,
+      foundItemName,
+      description,
+      location,
+      date,
+      image,
+      phoneNumber,
+      email,
+      status,
+    } = req.body;
+
+    try {
+      const foundItem = await prisma.foundItem.findUnique({
+        where: { id },
+      });
+
+      if (!foundItem) {
+        return res.status(404).json({
+          success: false,
+          statusCode: 404,
+          message: 'Found item not found',
+        });
+      }
+
+      const updatedFoundItem = await prisma.foundItem.update({
+        where: { id },
+        data: {
+          category,
+          foundItemName,
+          description,
+          location,
+          date,
+          image,
+          phoneNumber,
+          email,
+          status,
+        },
+      });
+
+      res.status(200).json({
+        success: true,
+        statusCode: 200,
+        message: 'Found item updated successfully',
+        data: updatedFoundItem,
+      });
+    } catch (error) {
+      console.error('Error updating found item:', error);
+      res.status(500).json({
+        success: false,
+        statusCode: 500,
+        message: 'Internal server error',
+      });
+    }
+  },
+);
 
 interface QueryParams {
   searchTerm?: string;
@@ -161,14 +287,6 @@ export const getFoundItems: RequestHandler = catchAsync(async (req, res) => {
           updatedAt: true,
         },
       },
-      category: {
-        select: {
-          id: true,
-          name: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      },
     },
   });
 
@@ -178,7 +296,7 @@ export const getFoundItems: RequestHandler = catchAsync(async (req, res) => {
 
   // Remove userId and categoryId fields from each found item
   const sanitizedFoundItems = foundItems.map(item => {
-    const { userId, categoryId, ...sanitizedItem } = item;
+    const { userId, ...sanitizedItem } = item;
     return sanitizedItem;
   });
 

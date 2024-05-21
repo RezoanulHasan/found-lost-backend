@@ -26,6 +26,7 @@ const seedSuperAdmin = async () => {
         name: config.super_admin_username as string,
         email: 'rezoanulhasan96@gmail.com',
         password: hashedPassword,
+        phoneNumber: '01734639066',
         userImage: 'https://i.ibb.co/K0y7s31/rezoanulhasan.jpg',
         role: UserRole.SuperAdmin,
 
