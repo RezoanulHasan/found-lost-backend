@@ -225,6 +225,8 @@ interface QueryParams {
   foundItemName?: string;
   location?: string;
   description?: string;
+  category?: string;
+  date?: string;
 }
 
 export const getFoundItems: RequestHandler = catchAsync(async (req, res) => {
@@ -237,6 +239,8 @@ export const getFoundItems: RequestHandler = catchAsync(async (req, res) => {
     foundItemName,
     location,
     description,
+    category,
+    date,
   }: QueryParams = req.query;
 
   const filterOptions: any = {
@@ -264,14 +268,24 @@ export const getFoundItems: RequestHandler = catchAsync(async (req, res) => {
       mode: 'insensitive',
     };
   }
+
   if (location) {
     filterOptions.where.location = { contains: location, mode: 'insensitive' };
   }
+
   if (description) {
     filterOptions.where.description = {
       contains: description,
       mode: 'insensitive',
     };
+  }
+
+  if (category) {
+    filterOptions.where.category = { equals: category };
+  }
+
+  if (date) {
+    filterOptions.where.date = { equals: date };
   }
 
   const foundItems = await prisma.foundItem.findMany({
