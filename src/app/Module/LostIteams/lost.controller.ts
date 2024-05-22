@@ -192,6 +192,8 @@ export const deleteLostItemById: RequestHandler = catchAsync(
     }
   },
 );
+
+//get  lost items  by all
 interface QueryParams {
   searchTerm?: string;
   page?: number;
@@ -204,6 +206,115 @@ interface QueryParams {
   category?: string;
   date?: string;
 }
+
+export const getLostItemsByUser: RequestHandler = catchAsync(
+  async (req, res) => {
+    const {
+      searchTerm,
+      page = 1,
+      limit = 10,
+      sortBy,
+      sortOrder,
+      lostItemName,
+      location,
+      description,
+      category,
+      date,
+    }: QueryParams = req.query;
+
+    const filterOptions: any = {
+      skip: (parseInt(page.toString()) - 1) * parseInt(limit.toString()),
+      take: parseInt(limit.toString()),
+      orderBy: {
+        [sortBy || 'createdAt']: sortOrder || 'desc',
+      },
+      where: {},
+    };
+
+    if (searchTerm) {
+      filterOptions.where = {
+        OR: [
+          { lostItemName: { contains: searchTerm, mode: 'insensitive' } },
+          { location: { contains: searchTerm, mode: 'insensitive' } },
+          { description: { contains: searchTerm, mode: 'insensitive' } },
+        ],
+      };
+    }
+
+    if (lostItemName) {
+      filterOptions.where.lostItemName = {
+        contains: lostItemName,
+        mode: 'insensitive',
+      };
+    }
+
+    if (location) {
+      filterOptions.where.location = {
+        contains: location,
+        mode: 'insensitive',
+      };
+    }
+
+    if (description) {
+      filterOptions.where.description = {
+        contains: description,
+        mode: 'insensitive',
+      };
+    }
+
+    if (category) {
+      filterOptions.where.category = { equals: category };
+    }
+
+    if (date) {
+      filterOptions.where.date = { equals: date };
+    }
+
+    const user = req.user as JwtPayload;
+    const { userId } = user;
+
+    filterOptions.where.userId = userId; // Add userId to filter options
+
+    const lostItems = await prisma.lostItem.findMany({
+      ...filterOptions,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            phoneNumber: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
+
+    const total = await prisma.lostItem.count({
+      where: { userId, ...filterOptions.where }, // Count lost items for the specific user
+    });
+
+    // Remove userId field from each lost item
+    const sanitizedLostItems = lostItems.map(item => {
+      const { userId, ...sanitizedItem } = item;
+      return sanitizedItem;
+    });
+
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: 'Lost items retrieved successfully',
+      meta: {
+        total,
+        page: parseInt(page.toString()),
+        limit: parseInt(limit.toString()),
+      },
+      data: sanitizedLostItems,
+    });
+  },
+);
 
 export const getLostItems: RequestHandler = catchAsync(async (req, res) => {
   const {
@@ -266,6 +377,7 @@ export const getLostItems: RequestHandler = catchAsync(async (req, res) => {
 
   const lostItems = await prisma.lostItem.findMany({
     ...filterOptions,
+
     include: {
       user: {
         select: {
@@ -273,6 +385,7 @@ export const getLostItems: RequestHandler = catchAsync(async (req, res) => {
           name: true,
           email: true,
           role: true,
+          phoneNumber: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -286,7 +399,7 @@ export const getLostItems: RequestHandler = catchAsync(async (req, res) => {
 
   // Remove userId field from each lost item
   const sanitizedLostItems = lostItems.map(item => {
-    const { userId, ...sanitizedItem } = item;
+    const { ...sanitizedItem } = item;
     return sanitizedItem;
   });
 
@@ -299,6 +412,7 @@ export const getLostItems: RequestHandler = catchAsync(async (req, res) => {
       page: parseInt(page.toString()),
       limit: parseInt(limit.toString()),
     },
+
     data: sanitizedLostItems,
   });
 });

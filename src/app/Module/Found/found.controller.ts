@@ -41,7 +41,6 @@ export const reportFoundItem: RequestHandler = catchAsync(async (req, res) => {
         image,
         phoneNumber,
         email,
-        status: 'PENDING', // Default status set to PENDING
       },
       include: {
         user: true,
@@ -59,6 +58,7 @@ export const reportFoundItem: RequestHandler = catchAsync(async (req, res) => {
           id: foundItem.user.id,
           name: foundItem.user.name || '',
           email: foundItem.user.email || '',
+          phoneNumber: foundItem.user.phoneNumber || '',
           createdAt: foundItem.user.createdAt || '',
           updatedAt: foundItem.user.updatedAt || '',
         },
@@ -297,6 +297,7 @@ export const getFoundItems: RequestHandler = catchAsync(async (req, res) => {
           name: true,
           email: true,
           role: true,
+          phoneNumber: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -326,3 +327,110 @@ export const getFoundItems: RequestHandler = catchAsync(async (req, res) => {
     data: sanitizedFoundItems,
   });
 });
+
+export const getFoundItemsByUser: RequestHandler = catchAsync(
+  async (req, res) => {
+    const {
+      searchTerm,
+      page = 1,
+      limit = 10,
+      sortBy,
+      sortOrder,
+      foundItemName,
+      location,
+      description,
+      category,
+      date,
+    }: QueryParams = req.query;
+
+    const filterOptions: any = {
+      skip: (parseInt(page.toString()) - 1) * parseInt(limit.toString()),
+      take: parseInt(limit.toString()),
+      orderBy: {
+        [sortBy || 'createdAt']: sortOrder || 'desc',
+      },
+      where: {},
+    };
+
+    if (searchTerm) {
+      filterOptions.where = {
+        OR: [
+          { foundItemName: { contains: searchTerm, mode: 'insensitive' } },
+          { location: { contains: searchTerm, mode: 'insensitive' } },
+          { description: { contains: searchTerm, mode: 'insensitive' } },
+        ],
+      };
+    }
+
+    if (foundItemName) {
+      filterOptions.where.foundItemName = {
+        contains: foundItemName,
+        mode: 'insensitive',
+      };
+    }
+
+    if (location) {
+      filterOptions.where.location = {
+        contains: location,
+        mode: 'insensitive',
+      };
+    }
+
+    if (description) {
+      filterOptions.where.description = {
+        contains: description,
+        mode: 'insensitive',
+      };
+    }
+
+    if (category) {
+      filterOptions.where.category = { equals: category };
+    }
+
+    if (date) {
+      filterOptions.where.date = { equals: date };
+    }
+    const user = req.user as JwtPayload;
+    const { userId } = user;
+
+    filterOptions.where.userId = userId; //
+    const foundItems = await prisma.foundItem.findMany({
+      ...filterOptions,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            phoneNumber: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
+
+    const total = await prisma.foundItem.count({
+      where: { userId, ...filterOptions.where },
+    });
+
+    // Remove userId and categoryId fields from each found item
+    const sanitizedFoundItems = foundItems.map(item => {
+      const { userId, ...sanitizedItem } = item;
+      return sanitizedItem;
+    });
+
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: 'Found items retrieved successfully',
+      meta: {
+        total,
+        page: parseInt(page.toString()),
+        limit: parseInt(limit.toString()),
+      },
+      data: sanitizedFoundItems,
+    });
+  },
+);

@@ -8,6 +8,9 @@ import { ProfileRoutes } from '../Module/Profile/profile.routes';
 import { LoginRoutes } from '../Module/Auth/login.routes';
 import { RegistrationRoutes } from '../Module/Auth/registration.routes';
 import { LostRoutes } from '../Module/LostIteams/lost.routes';
+import { LostItemByUserRoutes } from '../Module/LostIteams/userlost.route';
+import { FoundItemByUserRoutes } from '../Module/Found/userfound.route';
+import { ClamItemByUserRoutes } from '../Module/Clam/userclam.route';
 
 const router = express.Router();
 
@@ -50,6 +53,21 @@ const moduleRoutes = [
   {
     path: '/my-profile',
     route: ProfileRoutes,
+  },
+
+  {
+    path: '/user-clam-item',
+    route: ClamItemByUserRoutes,
+  },
+
+  {
+    path: '/user-found-item',
+    route: FoundItemByUserRoutes,
+  },
+
+  {
+    path: '/user-lost-item',
+    route: LostItemByUserRoutes,
   },
 ];
 
