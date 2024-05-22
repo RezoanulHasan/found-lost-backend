@@ -56,17 +56,17 @@ const moduleRoutes = [
   },
 
   {
-    path: '/user-clam-item',
+    path: '/my',
     route: ClamItemByUserRoutes,
   },
 
   {
-    path: '/user-found-item',
+    path: '/my',
     route: FoundItemByUserRoutes,
   },
 
   {
-    path: '/user-lost-item',
+    path: '/my',
     route: LostItemByUserRoutes,
   },
 ];

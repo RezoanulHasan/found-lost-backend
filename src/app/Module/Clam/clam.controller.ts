@@ -42,7 +42,73 @@ export const createClaim: RequestHandler = catchAsync(async (req, res) => {
   });
 });
 
-export const getClaims: RequestHandler = catchAsync(async (req, res) => {
+export const getClaimById: RequestHandler = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const claim = await prisma.claim.findUnique({
+    where: { id },
+    include: {
+      foundItem: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+              // Note: `password`, `status`, and `needPasswordChange` fields are explicitly excluded
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!claim) {
+    return res.status(404).json({
+      success: false,
+      statusCode: 404,
+      message: 'Claim not found',
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    message: 'Claim retrieved successfully',
+    data: claim,
+  });
+});
+
+export const deleteClaimById: RequestHandler = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const claim = await prisma.claim.findUnique({
+    where: { id },
+  });
+
+  if (!claim) {
+    return res.status(404).json({
+      success: false,
+      statusCode: 404,
+      message: 'Claim not found',
+    });
+  }
+
+  await prisma.claim.delete({
+    where: { id },
+  });
+
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    message: 'Claim deleted successfully',
+  });
+});
+
+export const getAllClaims: RequestHandler = catchAsync(async (req, res) => {
   const claims = await prisma.claim.findMany({
     include: {
       foundItem: {
@@ -72,6 +138,42 @@ export const getClaims: RequestHandler = catchAsync(async (req, res) => {
     data: claims,
   });
 });
+
+export const getAllClaimsForUser: RequestHandler = catchAsync(
+  async (req, res) => {
+    const user = req.user as JwtPayload;
+    const userId = user.userId;
+
+    const claims = await prisma.claim.findMany({
+      where: {
+        userId: userId,
+      },
+      include: {
+        foundItem: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      message: 'Claims retrieved successfully',
+      data: claims,
+    });
+  },
+);
 
 export const updateClaimStatus: RequestHandler = catchAsync(
   async (req, res) => {

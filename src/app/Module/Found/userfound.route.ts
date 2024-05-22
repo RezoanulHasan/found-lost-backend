@@ -7,7 +7,7 @@ import { getFoundItemsByUser } from './found.controller';
 const router = express.Router();
 
 router.get(
-  '/',
+  '/found',
 
   auth(UserRole.USER, UserRole.ADMIN, UserRole.SuperAdmin),
   getFoundItemsByUser,

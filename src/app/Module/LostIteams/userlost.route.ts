@@ -7,7 +7,7 @@ import { getLostItemsByUser } from './lost.controller';
 const router = express.Router();
 
 router.get(
-  '/',
+  '/lost',
   auth(UserRole.USER, UserRole.ADMIN, UserRole.SuperAdmin),
   getLostItemsByUser,
 );
