@@ -6,6 +6,7 @@ import {
   createClaim,
   deleteClaimById,
   getAllClaims,
+  //getAllClaims,
   getClaimById,
   updateClaimStatus,
 } from './clam.controller';
@@ -17,8 +18,8 @@ router.post(
   auth(UserRole.USER, UserRole.ADMIN, UserRole.SuperAdmin),
   createClaim,
 );
-router.delete('/id', deleteClaimById);
-router.get('/id', getClaimById);
+router.delete('/:id', deleteClaimById);
+router.get('/:id', getClaimById);
 router.get('/', getAllClaims);
 router.put('/:id', updateClaimStatus);
 

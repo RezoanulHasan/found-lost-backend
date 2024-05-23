@@ -1,8 +1,13 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable no-undef */
 import { PrismaClient } from '@prisma/client';
-import { JwtPayload } from 'jsonwebtoken';
+
 import catchAsync from '../../../shared/cathAsync';
 import { RequestHandler } from 'express';
+import { JwtPayload } from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 
@@ -21,6 +26,19 @@ export const createClaim: RequestHandler = catchAsync(async (req, res) => {
       foundItemId,
       distinguishingFeatures,
       lostDate,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          phoneNumber: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
     },
   });
   const foundItem = await prisma.foundItem.findUnique({
@@ -139,38 +157,89 @@ export const getAllClaims: RequestHandler = catchAsync(async (req, res) => {
   });
 });
 
+interface QueryParams {
+  searchTerm?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  lostDate?: string;
+}
+
 export const getAllClaimsForUser: RequestHandler = catchAsync(
   async (req, res) => {
-    const user = req.user as JwtPayload;
-    const userId = user.userId;
+    const {
+      searchTerm,
+      page = 1,
+      limit = 10,
+      sortBy,
+      sortOrder,
+      lostDate,
+    }: QueryParams = req.query;
 
-    const claims = await prisma.claim.findMany({
-      where: {
-        userId: userId,
+    const filterOptions: any = {
+      skip: (parseInt(page.toString()) - 1) * parseInt(limit.toString()),
+      take: parseInt(limit.toString()),
+      orderBy: {
+        [sortBy || 'createdAt']: sortOrder || 'desc',
       },
+      where: {},
+    };
+
+    if (searchTerm) {
+      filterOptions.where = {
+        OR: [{ lostDate: { contains: searchTerm, mode: ' lostDate' } }],
+      };
+    }
+
+    if (lostDate) {
+      filterOptions.where.lostDate = {
+        contains: lostDate,
+        mode: 'insensitive',
+      };
+    }
+
+    const user = req.user as JwtPayload;
+    const { userId } = user;
+
+    filterOptions.where.userId = userId; //
+    const claims = await prisma.claim.findMany({
+      ...filterOptions,
       include: {
-        foundItem: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                createdAt: true,
-                updatedAt: true,
-              },
-            },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            phoneNumber: true,
+            createdAt: true,
+            updatedAt: true,
           },
         },
       },
     });
 
+    const total = await prisma.claim.count({
+      where: { userId, ...filterOptions.where },
+    });
+
+    // Remove userId and categoryId fields from each found item
+    const sanitizedFoundItems = claims?.map(item => {
+      const { userId, ...sanitizedItem } = item;
+      return sanitizedItem;
+    });
+
     res.status(200).json({
       success: true,
       statusCode: 200,
-      message: 'Claims retrieved successfully',
-      data: claims,
+      message: 'Found items retrieved successfully',
+      meta: {
+        total,
+        page: parseInt(page.toString()),
+        limit: parseInt(limit.toString()),
+      },
+      data: sanitizedFoundItems,
     });
   },
 );

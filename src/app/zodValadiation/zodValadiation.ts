@@ -20,7 +20,9 @@ const User = z.object({
   userImage: z.string({
     required_error: ' Image is required',
   }),
-
+  phoneNumber: z.string({
+    required_error: 'phoneNumber',
+  }),
   role: UserRole.optional().default('USER'),
   status: z.boolean().optional(),
   needPasswordChange: z.boolean().optional(),

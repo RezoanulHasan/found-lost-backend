@@ -16,7 +16,8 @@ import prisma from '../../../shared/prisma';
 
 export const registration: RequestHandler = catchAsync(async (req, res) => {
   const validatedData = User.parse(req.body);
-  const { name, email, password, profile, role, userImage } = validatedData;
+  const { name, email, password, profile, role, userImage, phoneNumber } =
+    validatedData;
 
   // Check if the username already exists
   const existingUser = await prisma.user.findUnique({
@@ -84,6 +85,7 @@ export const registration: RequestHandler = catchAsync(async (req, res) => {
       email,
       role,
       userImage,
+      phoneNumber,
       password: hashedPasswordValue,
       profile: {
         create: profile, // Assuming profile data is provided in the request body
@@ -107,6 +109,7 @@ export const registration: RequestHandler = catchAsync(async (req, res) => {
       name: userData.name,
       email: userData.email,
       userImage: userData.userImage,
+      phoneNumber: userData.phoneNumber,
       role: userData.role,
       createdAt: userData.createdAt,
       updatedAt: userData.updatedAt,
