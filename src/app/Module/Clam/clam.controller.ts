@@ -206,6 +206,7 @@ export const getAllClaimsForUser: RequestHandler = catchAsync(
     const claims = await prisma.claim.findMany({
       ...filterOptions,
       include: {
+        foundItem: true,
         user: {
           select: {
             id: true,
@@ -261,7 +262,8 @@ export const updateClaimStatus: RequestHandler = catchAsync(
       });
     }
 
-    const { status } = req.body;
+    const { status, lostDate, distinguishingFeatures } = req.body;
+
     // Check if the status is valid
     if (
       !status ||
@@ -274,9 +276,21 @@ export const updateClaimStatus: RequestHandler = catchAsync(
       });
     }
 
+    // Validate lostDate and distinguishingFeatures if necessary
+    // Here, assuming both fields are optional but if provided should be valid
+    const dataToUpdate: any = { status };
+
+    if (lostDate) {
+      dataToUpdate.lostDate = lostDate; // assuming lostDate is provided in a valid date format
+    }
+
+    if (distinguishingFeatures) {
+      dataToUpdate.distinguishingFeatures = distinguishingFeatures;
+    }
+
     const updatedClaim = await prisma.claim.update({
       where: { id: Id },
-      data: { status },
+      data: dataToUpdate,
     });
 
     res.status(200).json({

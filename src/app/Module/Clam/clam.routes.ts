@@ -21,6 +21,6 @@ router.post(
 router.delete('/:id', deleteClaimById);
 router.get('/:id', getClaimById);
 router.get('/', getAllClaims);
-router.put('/:id', updateClaimStatus);
+router.patch('/:id', updateClaimStatus);
 
 export const ClamRoutes = router;
