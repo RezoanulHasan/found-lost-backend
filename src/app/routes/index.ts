@@ -11,6 +11,7 @@ import { LostRoutes } from '../Module/LostIteams/lost.routes';
 import { LostItemByUserRoutes } from '../Module/LostIteams/userlost.route';
 import { FoundItemByUserRoutes } from '../Module/Found/userfound.route';
 import { ClamItemByUserRoutes } from '../Module/Clam/userclam.route';
+import { CountRoutes } from '../Module/ActivityMonitoring/count.routes';
 
 const router = express.Router();
 
@@ -68,6 +69,11 @@ const moduleRoutes = [
   {
     path: '/my',
     route: LostItemByUserRoutes,
+  },
+
+  {
+    path: '/counts',
+    route: CountRoutes,
   },
 ];
 
