@@ -2,7 +2,7 @@
 
 Welcome to the Lost and Found System! This system is designed to simplify the process of reporting and claiming lost items. Whether you've found an item and want to reunite it with its owner or you're looking to claim a lost possession, this system has got you covered.
 
-## Live-link:  https://found-lost-project.vercel.app/
+## Live-link:  https://found-lost-frontend.vercel.app/
 
 ## Features
 
@@ -72,7 +72,6 @@ This endpoint handles user registration, creating both the user account and corr
 
 ```
 
-
 ### 2. User Login
 
 - **Endpoint**: `POST /api/login`
@@ -85,57 +84,82 @@ This endpoint handles user registration, creating both the user account and corr
   "password": "your_password"
 }
 ```
-### createFoundItemCategory
 
-Creates a Found  category using the user's details extracted from the authorization token.
 
-- **Endpoint**: `POST /api/found-item-categories`
-- **Request Headers**:
-  - Authorization: `<JWT_TOKEN>`
+### POST /lost-items
+- Description: Report a lost item
+- Request Body: JSON object containing details of the lost item
+- Authentication Required: Yes
+- Authorized Roles: USER, ADMIN, SuperAdmin
 
-- **Method:** `POST`
-- **Request Body:** data formate like this \*
+###  GET /lost-items/:id
+- Description: Retrieve a specific lost item by its ID
+- Path Parameter:
+  - id: ID of the lost item
+- Authentication Required: No
 
-```json
-{
-  "name": "category_name"
- 
-}
-```
+### PUT /lost-items/:id
+- Description: Update a specific lost item by its ID
+- Path Parameter:
+  - id: ID of the lost item
+- Request Body: JSON object containing updated details of the lost item
+- Authentication Required: Yes
+- Authorized Roles: USER, ADMIN, SuperAdmin
 
-### 3. Report a Found Item
+### GET /lost-items
+- Description: Retrieve all lost items
+- Authentication Required: No
 
-Creates a Found Item using the user's details extracted from the authorization token.
+### DELETE /lost-items/:id
+- Description: Delete a specific lost item by its ID
+- Path Parameter:
+  - id: ID of the lost item
+- Authentication Required: Yes
+- Authorized Roles: USER, ADMIN, SuperAdmin
 
-- **Endpoint**: `POST /api/found-items`
-- **Request Headers**:
-  - Authorization: `<JWT_TOKEN>`
- 
-- **Request Body:** data formate like this \*
+### GET /lost-items/user-lost
+- Description: Retrieve lost items specific to the authenticated user
+- Authentication Required: Yes
+- Authorized Roles: USER, ADMIN, SuperAdmin
+### POST /found-items
+- Description: Report a found item
+- Request Body: JSON object containing details of the found item
+- Authentication Required: Yes
+- Authorized Roles: USER, ADMIN, SuperAdmin
 
-```json
-{
-    "categoryId":"use_ID",
-    "foundItemName": " choose_any_name",
-    "description": " set_descripation ",
-    "location": " set_locatoion"
-}
-```
+### GET /found-items/:id
+- Description: Retrieve a specific found item by its ID
+- Path Parameter:
+  - id: ID of the found item
+- Authentication Required: No
 
-### 4. Get Paginated and Filtered Found Items
+### PUT /found-items/:id
+- Description: Update a specific found item by its ID
+- Path Parameter:
+  - id: ID of the found item
+- Request Body: JSON object containing updated details of the found item
+- Authentication Required: Yes
+- Authorized Roles: USER, ADMIN, SuperAdmin
 
-When interacting with the API, you can utilize the following query parameters to customize and filter the results according to your preferences.
+### GET /found-items
+- Description: Retrieve all found items
+- Authentication Required: No
 
-- **Endpoint**: `GET /api/found-items`
-- **Query Parameters for API Requests**:
-  - searchTerm: (Optional) Searches for items based on a keyword or phrase.
-  - page: (Optional) Specifies the page number for paginated results. Default is 1.
-  - limit: (Optional) Sets the number of items per page. Default is a predefined limit.
-  - sortBy: (Optional) Specifies the field by which the results should be sorted.
-  - sortOrder: (Optional) Determines the sorting order, either 'asc' (ascending) or 'desc' (descending).
-  - foundItemName: (Optional) Filters results by the name of the found item.
+### DELETE /found-items/:id
+- Description: Delete a specific found item by its ID
+- Path Parameter:
+  - id: ID of the found item
+- Authentication Required: Yes
+- Authorized Roles: USER, ADMIN, SuperAdmin
 
-### 5. Create a Claim
+###  GET /found-items/user-found
+- Description: Retrieve found items specific to the authenticated user
+- Authentication Required: Yes
+- Authorized Roles: USER, ADMIN, SuperAdmin
+
+
+
+###  Create a Claim
 
 Creates a Claim using the user's details extracted from the authorization token.
 
@@ -153,13 +177,13 @@ Creates a Claim using the user's details extracted from the authorization token.
 }
 ```
 
-### 6. Get Claims
+###  Get Claims
 
 - **Endpoint**: `GET /api/claims`
 - **Request Headers**:
   - Authorization: `<JWT_TOKEN>`
 
-### 7. Update Claim Status
+###  Update Claim Status
 
 - **Endpoint**: `PUT /api/claims/:claimId`
 - **Request Headers**:
@@ -174,13 +198,15 @@ Creates a Claim using the user's details extracted from the authorization token.
 }
 ```
 
-### 8. Get Profile
+
+
+###  Get Profile
 
 - **Endpoint**: `GET /api/my-profile`
 - **Request Headers**:
   - Authorization: `<JWT_TOKEN>`
 
-### 9. Update My Profile
+###  Update My Profile
 
 - **Endpoint**: `PUT /api/my-profile`
 - **Request Headers**:
